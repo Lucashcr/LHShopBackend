@@ -1,17 +1,24 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 
+	"github.com/Lucashcr/LHShopBackend/dbconn"
 	"github.com/Lucashcr/LHShopBackend/products"
 )
 
 func main() {
+	db := dbconn.GetDB()
+	defer db.Close()
+
 	mux := http.NewServeMux()
 
 	products.RegisterHandlers(mux)
 
-	fmt.Println("Server running on port 8000...")
-	http.ListenAndServe(":8000", mux)
+	log.Println("[INFO]: Server running on port 8000...")
+	err := http.ListenAndServe(":8000", mux)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

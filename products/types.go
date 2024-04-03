@@ -1,43 +1,49 @@
 package products
 
-import "github.com/google/uuid"
+import (
+	"errors"
+	"log"
 
-type product struct {
-	id          uuid.UUID
-	name        string
-	description string
-	price       float64
+	"github.com/google/uuid"
+)
+
+type Product struct {
+	ID          uuid.UUID `json:"id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	Price       float64   `json:"price"`
 }
 
-func CreateProduct(name string, description string, price float64) product {
+func CreateProduct(name string, description string, price float64) (product *Product, err error) {
 	if len(name) == 0 {
-		panic("Product name cannot be empty")
+		log.Println("[ERROR]: Product name cannot be empty")
+		return nil, errors.New("Product name cannot be empty")
 	}
 
 	if len(name) > 255 {
-		panic("Product name cannot be longer than 100 characters")
+		log.Println("[ERROR]: Product name cannot be longer than 255 characters")
+		return nil, errors.New("Product name cannot be longer than 255 characters")
 	}
 
 	if len(description) > 65535 {
-		panic("Product description cannot be longer than 65535 characters")
+		log.Println("[ERROR]: Product description cannot be longer than 65535 characters")
+		return nil, errors.New("Product description cannot be longer than 65535 characters")
 	}
 
 	if price <= 0 {
-		panic("Product price must be greater than 0")
+		log.Println("[ERROR]: Product price must be greater than 0")
+		return nil, errors.New("Product price must be greater than 0")
 	}
 
 	id := uuid.New()
-	return product{id, name, description, price}
+	return &Product{id, name, description, price}, nil
 }
 
-func (p product) GetName() string {
-	return p.name
-}
-
-func (p product) GetPrice() float64 {
-	return p.price
-}
-
-func (p product) GetDescription() string {
-	return p.description
+type ProductsResponse struct {
+	Result       []Product `json:"result"`
+	TotalItems   int       `json:"totalItems"`
+	TotalPages   int       `json:"totalPages"`
+	ItemsPerPage int       `json:"itemsPerPage"`
+	NextPage     string    `json:"nextPage,omitempty"`
+	PrevPage     string    `json:"prevPage,omitempty"`
 }

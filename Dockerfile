@@ -6,6 +6,6 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /lhshop
 
-EXPOSE 8080
+EXPOSE 8000
 
 CMD ["/lhshop"]
