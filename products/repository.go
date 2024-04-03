@@ -82,7 +82,7 @@ func InsertProductIntoDatabase(p *Product) error {
 	return nil
 }
 
-func UpdateProductByID(p *Product) error {
+func UpdateProductByID(p *Product) (int64, error) {
 	db := dbconn.GetDB()
 	defer db.Close()
 
@@ -91,20 +91,26 @@ func UpdateProductByID(p *Product) error {
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		log.Println("[ERROR]: Error preparing update statement!")
-		return err
+		return 0, err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(p.Name, p.Description, p.Price, p.ID)
+	result, err := stmt.Exec(p.Name, p.Description, p.Price, p.ID)
 	if err != nil {
 		log.Println("[ERROR]: Error updating product!")
-		return err
+		return 0, err
 	}
 
-	return nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("[ERROR]: Error getting rows affected!")
+		return 0, err
+	}
+
+	return rowsAffected, nil
 }
 
-func DeleteProductByID(id string) error {
+func DeleteProductByID(id string) (int64, error) {
 	db := dbconn.GetDB()
 	defer db.Close()
 
@@ -113,15 +119,21 @@ func DeleteProductByID(id string) error {
 	stmt, err := db.Prepare(query)
 	if err != nil {
 		log.Println("[ERROR]: Error preparing delete statement!")
-		return err
+		return 0, err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(id)
+	result, err := stmt.Exec(id)
 	if err != nil {
 		log.Println("[ERROR]: Error deleting product!")
-		return err
+		return 0, err
 	}
 
-	return nil
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		log.Println("[ERROR]: Error getting rows affected!")
+		return 0, err
+	}
+
+	return rowsAffected, nil
 }

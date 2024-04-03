@@ -3,6 +3,7 @@ package products
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/Lucashcr/LHShopBackend/utils"
@@ -44,14 +45,14 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	pageInt, err := utils.VerifyPageQuery(r, w)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid page number"))
+		w.Write([]byte("Error verifying page query: Invalid page number"))
 		return
 	}
 
 	itemsPerPageInt, err := utils.VerifyItemsPerPageQuery(r, w)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid itemsPerPage number"))
+		w.Write([]byte("Error verifying itemsPerPage query: Invalid itemsPerPage number"))
 		return
 	}
 
@@ -59,7 +60,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	if pageInt < 1 || pageInt > productsCount/itemsPerPageInt+1 {
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid page number"))
+		w.Write([]byte("Error verifying page query: Invalid page number"))
 		return
 	}
 
@@ -79,7 +80,6 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	jsonProducts, err := json.Marshal(productsResponse)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error marshalling JSON"))
 		return
 	}
 
@@ -93,14 +93,13 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 	product, err := FetchProductByID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte("Product not found"))
+		w.Write([]byte("Error fetching product by ID: Product not found"))
 		return
 	}
 
 	jsonProduct, err := json.Marshal(product)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error marshalling JSON"))
 		return
 	}
 
@@ -122,19 +121,25 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = UpdateProductByID(&updatedProduct)
+	rowsAffected, err := UpdateProductByID(&updatedProduct)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("Error updating product: %s", err.Error())
-		w.Write([]byte(msg))
+		log.Println(msg)
+		return
+	}
+
+	if rowsAffected == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Error updating product: Product not found"))
 		return
 	}
 
 	json, err := json.Marshal(updatedProduct)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		msg := fmt.Sprintf("Error marshalling JSON: %s", err.Error())
-		w.Write([]byte(msg))
+		msg := fmt.Sprintf("[ERROR]: Error marshalling JSON: %s", err.Error())
+		log.Println(msg)
 		return
 	}
 
@@ -145,10 +150,17 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
-	err := DeleteProductByID(id)
+	rowsAffected, err := DeleteProductByID(id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Error deleting product"))
+		msg := fmt.Sprintf("[ERROR]: Error deleting product: %s", err.Error())
+		log.Println(msg)
+		return
+	}
+
+	if rowsAffected == 0 {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte("Error deleting product: Product not found"))
 		return
 	}
 
