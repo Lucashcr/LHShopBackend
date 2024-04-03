@@ -117,7 +117,13 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	msg := fmt.Sprintf("Product with ID %s deleted", id)
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(msg))
+
+	err := DeleteProductByID(id)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error deleting product"))
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

@@ -81,3 +81,25 @@ func InsertProductIntoDatabase(p *Product) error {
 
 	return nil
 }
+
+func DeleteProductByID(id string) error {
+	db := dbconn.GetDB()
+	defer db.Close()
+
+	query := "DELETE FROM products WHERE id = $1"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Println("[ERROR]: Error preparing delete statement!")
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
+	if err != nil {
+		log.Println("[ERROR]: Error deleting product!")
+		return err
+	}
+
+	return nil
+}
