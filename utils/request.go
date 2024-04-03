@@ -27,8 +27,6 @@ func VerifyPageQuery(r *http.Request, w http.ResponseWriter) (int, error) {
 
 	pageInt, err := strconv.Atoi(page)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid page number"))
 		return 0, err
 	}
 
@@ -56,8 +54,6 @@ func VerifyItemsPerPageQuery(r *http.Request, w http.ResponseWriter) (int, error
 
 	itemsPerPageInt, err := strconv.Atoi(itemsPerPage)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Invalid itemsPerPage number"))
 		return 0, err
 	}
 

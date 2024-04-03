@@ -43,11 +43,15 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	pageInt, err := utils.VerifyPageQuery(r, w)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid page number"))
 		return
 	}
 
 	itemsPerPageInt, err := utils.VerifyItemsPerPageQuery(r, w)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Invalid itemsPerPage number"))
 		return
 	}
 
