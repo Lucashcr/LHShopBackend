@@ -6,7 +6,7 @@ import (
 	"github.com/Lucashcr/LHShopBackend/dbconn"
 )
 
-func GetProductList(page int, itensPerPage int) ([]Product, int) {
+func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 	db := dbconn.GetDB()
 	defer db.Close()
 
@@ -42,4 +42,20 @@ func GetProductList(page int, itensPerPage int) ([]Product, int) {
 	}
 
 	return products, productsCount
+}
+
+func FetchProductByID(id string) (*Product, error) {
+	db := dbconn.GetDB()
+	defer db.Close()
+
+	query := "SELECT id, name, description, price FROM products WHERE id = $1"
+
+	var p Product
+	err := db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Description, &p.Price)
+	if err != nil {
+		log.Println("[ERROR]: Error querying product!")
+		return nil, err
+	}
+
+	return &p, nil
 }

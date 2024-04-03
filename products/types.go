@@ -40,6 +40,7 @@ func CreateProduct(name string, description string, price float64) (product *Pro
 }
 
 type ProductsResponse struct {
+	StatusCode   int       `json:"statusCode"`
 	Result       []Product `json:"result"`
 	TotalItems   int       `json:"totalItems"`
 	TotalPages   int       `json:"totalPages"`
