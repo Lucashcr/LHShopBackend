@@ -109,10 +109,37 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
-	id := r.PathValue("id")
-	msg := fmt.Sprintf("Product with ID %s updated", id)
+	var err error
+
+	var updatedProduct Product
+
+	err = ParseProductFromRequest(r, &updatedProduct)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		msg := fmt.Sprintf("Error parsing product from request: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
+	err = UpdateProductByID(&updatedProduct)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Error updating product: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
+	json, err := json.Marshal(updatedProduct)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Error marshalling JSON: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(msg))
+	w.Write(json)
 }
 
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {

@@ -18,6 +18,18 @@ type Product struct {
 func ParseProductFromRequest(r *http.Request, p *Product) error {
 	var err error
 
+	if r.Method != http.MethodPost {
+		id := r.PathValue("id")
+		if id == "" {
+			return errors.New("Product ID is required")
+		}
+
+		p.ID, err = uuid.Parse(id)
+		if err != nil {
+			return errors.New("Product ID is not a valid UUID")
+		}
+	}
+
 	err = json.NewDecoder(r.Body).Decode(p)
 	if err != nil {
 		return err

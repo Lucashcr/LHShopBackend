@@ -82,6 +82,28 @@ func InsertProductIntoDatabase(p *Product) error {
 	return nil
 }
 
+func UpdateProductByID(p *Product) error {
+	db := dbconn.GetDB()
+	defer db.Close()
+
+	query := "UPDATE products SET name = $1, description = $2, price = $3 WHERE id = $4"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Println("[ERROR]: Error preparing update statement!")
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(p.Name, p.Description, p.Price, p.ID)
+	if err != nil {
+		log.Println("[ERROR]: Error updating product!")
+		return err
+	}
+
+	return nil
+}
+
 func DeleteProductByID(id string) error {
 	db := dbconn.GetDB()
 	defer db.Close()
