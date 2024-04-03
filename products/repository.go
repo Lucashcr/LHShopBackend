@@ -59,3 +59,25 @@ func FetchProductByID(id string) (*Product, error) {
 
 	return &p, nil
 }
+
+func InsertProductIntoDatabase(p *Product) error {
+	db := dbconn.GetDB()
+	defer db.Close()
+
+	query := "INSERT INTO products (name, description, price) VALUES ($1, $2, $3) RETURNING id"
+
+	stmt, err := db.Prepare(query)
+	if err != nil {
+		log.Println("[ERROR]: Error preparing insert statement!")
+		return err
+	}
+	defer stmt.Close()
+
+	err = stmt.QueryRow(p.Name, p.Description, p.Price).Scan(&p.ID)
+	if err != nil {
+		log.Println("[ERROR]: Error inserting product!")
+		return err
+	}
+
+	return nil
+}

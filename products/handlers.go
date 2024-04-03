@@ -9,8 +9,35 @@ import (
 )
 
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	var newProduct Product
+	err = ParseProductFromRequest(r, &newProduct)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		msg := fmt.Sprintf("Error parsing product from request: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
+	err = InsertProductIntoDatabase(&newProduct)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Error inserting product into database: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
+	json, err := json.Marshal(newProduct)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Error marshalling JSON: %s", err.Error())
+		w.Write([]byte(msg))
+		return
+	}
+
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Product created"))
+	w.Write(json)
 }
 
 func ListProductsHandler(w http.ResponseWriter, r *http.Request) {

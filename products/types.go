@@ -1,8 +1,9 @@
 package products
 
 import (
+	"encoding/json"
 	"errors"
-	"log"
+	"net/http"
 
 	"github.com/google/uuid"
 )
@@ -14,33 +15,39 @@ type Product struct {
 	Price       float64   `json:"price"`
 }
 
-func CreateProduct(name string, description string, price float64) (product *Product, err error) {
-	if len(name) == 0 {
-		log.Println("[ERROR]: Product name cannot be empty")
-		return nil, errors.New("Product name cannot be empty")
+func ParseProductFromRequest(r *http.Request, p *Product) error {
+	var err error
+
+	err = json.NewDecoder(r.Body).Decode(p)
+	if err != nil {
+		return err
 	}
 
-	if len(name) > 255 {
-		log.Println("[ERROR]: Product name cannot be longer than 255 characters")
-		return nil, errors.New("Product name cannot be longer than 255 characters")
+	err = p.validate()
+	if err != nil {
+		return err
 	}
 
-	if len(description) > 65535 {
-		log.Println("[ERROR]: Product description cannot be longer than 65535 characters")
-		return nil, errors.New("Product description cannot be longer than 65535 characters")
+	return nil
+}
+
+func (p *Product) validate() error {
+	if p.Name == "" {
+		return errors.New("Product name is required")
 	}
 
-	if price <= 0 {
-		log.Println("[ERROR]: Product price must be greater than 0")
-		return nil, errors.New("Product price must be greater than 0")
+	if p.Description == "" {
+		return errors.New("Product description is required")
 	}
 
-	id := uuid.New()
-	return &Product{id, name, description, price}, nil
+	if p.Price == 0 {
+		return errors.New("Product price is required")
+	}
+
+	return nil
 }
 
 type ProductsResponse struct {
-	StatusCode   int       `json:"statusCode"`
 	Result       []Product `json:"result"`
 	TotalItems   int       `json:"totalItems"`
 	TotalPages   int       `json:"totalPages"`
