@@ -8,7 +8,6 @@ import (
 
 func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 	db := dbconn.GetDB()
-	defer db.Close()
 
 	countQuery := "SELECT COUNT(id) FROM products"
 
@@ -46,7 +45,6 @@ func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 
 func FetchProductByID(id string) (*Product, error) {
 	db := dbconn.GetDB()
-	defer db.Close()
 
 	query := "SELECT id, name, description, price FROM products WHERE id = $1"
 
@@ -62,7 +60,6 @@ func FetchProductByID(id string) (*Product, error) {
 
 func InsertProductIntoDatabase(p *Product) error {
 	db := dbconn.GetDB()
-	defer db.Close()
 
 	query := "INSERT INTO products (name, description, price) VALUES ($1, $2, $3) RETURNING id"
 
@@ -84,7 +81,6 @@ func InsertProductIntoDatabase(p *Product) error {
 
 func UpdateProductByID(p *Product) (int64, error) {
 	db := dbconn.GetDB()
-	defer db.Close()
 
 	query := "UPDATE products SET name = $1, description = $2, price = $3 WHERE id = $4"
 
@@ -112,7 +108,6 @@ func UpdateProductByID(p *Product) (int64, error) {
 
 func DeleteProductByID(id string) (int64, error) {
 	db := dbconn.GetDB()
-	defer db.Close()
 
 	query := "DELETE FROM products WHERE id = $1"
 
