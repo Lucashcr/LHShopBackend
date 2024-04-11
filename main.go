@@ -10,16 +10,17 @@ import (
 )
 
 func main() {
-	db := dbconn.GetDB()
-	defer db.Close()
+	dbconn.GetDB()
+	defer dbconn.CloseDB()
 
 	mux := http.NewServeMux()
 
 	products.RegisterHandlers(mux)
 
 	log.Println("[INFO]: Server running on port 8000...")
+	defer log.Println("[INFO]: Server stopped!")
 	err := http.ListenAndServe(":8000", middlewares.CorsMiddleware(mux))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("[ERROR]: Error starting server! %v", err)
 	}
 }

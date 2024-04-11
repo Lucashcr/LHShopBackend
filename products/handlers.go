@@ -15,6 +15,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	var newProduct Product
 	err = ParseProductFromRequest(r, &newProduct)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error parsing product from request: %s", r.URL, http.StatusBadRequest, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		msg := fmt.Sprintf("Error parsing product from request: %s", err.Error())
 		w.Write([]byte(msg))
@@ -23,6 +24,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	err = InsertProductIntoDatabase(&newProduct)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error inserting product into database: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("Error inserting product into database: %s", err.Error())
 		w.Write([]byte(msg))
@@ -31,12 +33,14 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(newProduct)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error marshalling JSON: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("Error marshalling JSON: %s", err.Error())
 		w.Write([]byte(msg))
 		return
 	}
 
+	log.Printf("[INFO] %s (%d): Product created!", r.URL, http.StatusCreated)
 	w.WriteHeader(http.StatusCreated)
 	w.Write(json)
 }
@@ -44,6 +48,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	pageInt, err := utils.VerifyPageQuery(r, w)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error verifying page query: Invalid page number", r.URL, http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error verifying page query: Invalid page number"))
 		return
@@ -51,6 +56,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	itemsPerPageInt, err := utils.VerifyItemsPerPageQuery(r, w)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error verifying itemsPerPage query: Invalid itemsPerPage number", r.URL, http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error verifying itemsPerPage query: Invalid itemsPerPage number"))
 		return
@@ -59,6 +65,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 	productsList, productsCount := FetchProductList(pageInt, itemsPerPageInt)
 
 	if pageInt < 1 || pageInt > productsCount/itemsPerPageInt+1 {
+		log.Printf("[ERROR] %s (%d): Error verifying page query: Invalid page number", r.URL, http.StatusBadRequest)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Error verifying page query: Invalid page number"))
 		return
@@ -79,10 +86,13 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonProducts, err := json.Marshal(productsResponse)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error marshalling JSON: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Error marshalling JSON"))
 		return
 	}
 
+	log.Printf("[INFO] %s (%d): Products listed!", r.URL, http.StatusOK)
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonProducts)
 }
@@ -92,6 +102,7 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	product, err := FetchProductByID(id)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error fetching product by ID: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Error fetching product by ID: Product not found"))
 		return
@@ -99,7 +110,10 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonProduct, err := json.Marshal(product)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error marshalling JSON: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+		msg := fmt.Sprintf("Error marshalling JSON: %s", err.Error())
+		w.Write([]byte(msg))
 		return
 	}
 
@@ -109,12 +123,12 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
-
 	var updatedProduct Product
 
 	err = ParseProductFromRequest(r, &updatedProduct)
 
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error parsing product from request: %s", r.URL, http.StatusBadRequest, err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		msg := fmt.Sprintf("Error parsing product from request: %s", err.Error())
 		w.Write([]byte(msg))
@@ -123,13 +137,15 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	rowsAffected, err := UpdateProductByID(&updatedProduct)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error updating product: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("Error updating product: %s", err.Error())
-		log.Println(msg)
+		w.Write([]byte(msg))
 		return
 	}
 
 	if rowsAffected == 0 {
+		log.Printf("[ERROR] %s (%d): Error updating product: Product not found", r.URL, http.StatusNotFound)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Error updating product: Product not found"))
 		return
@@ -137,12 +153,14 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	json, err := json.Marshal(updatedProduct)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error marshalling JSON: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("[ERROR]: Error marshalling JSON: %s", err.Error())
-		log.Println(msg)
+		w.Write([]byte(msg))
 		return
 	}
 
+	log.Printf("[INFO] %s (%d): Product updated!", r.URL, http.StatusOK)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
@@ -152,17 +170,20 @@ func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 
 	rowsAffected, err := DeleteProductByID(id)
 	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error deleting product: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		msg := fmt.Sprintf("[ERROR]: Error deleting product: %s", err.Error())
-		log.Println(msg)
+		w.Write([]byte(msg))
 		return
 	}
 
 	if rowsAffected == 0 {
+		log.Printf("[ERROR] %s (%d): Error deleting product: Product not found", r.URL, http.StatusNotFound)
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Error deleting product: Product not found"))
 		return
 	}
 
+	log.Printf("[INFO] %s (%d): Product deleted!", r.URL, http.StatusNoContent)
 	w.WriteHeader(http.StatusNoContent)
 }

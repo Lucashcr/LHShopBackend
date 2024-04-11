@@ -1,12 +1,15 @@
 package middlewares
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"strings"
 )
 
 func CorsMiddleware(next http.Handler) http.Handler {
+	log.Println("[INFO]: Setting up CORS middleware...")
+	defer log.Println("[INFO]: CORS middleware set up!")
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
 
