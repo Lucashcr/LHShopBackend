@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/Lucashcr/LHShopBackend/dbconn"
+	"github.com/Lucashcr/LHShopBackend/middlewares"
 	"github.com/Lucashcr/LHShopBackend/products"
 )
 
@@ -17,7 +18,7 @@ func main() {
 	products.RegisterHandlers(mux)
 
 	log.Println("[INFO]: Server running on port 8000...")
-	err := http.ListenAndServe(":8000", mux)
+	err := http.ListenAndServe(":8000", middlewares.CorsMiddleware(mux))
 	if err != nil {
 		log.Fatal(err)
 	}
