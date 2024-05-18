@@ -6,7 +6,7 @@ import (
 	"github.com/Lucashcr/LHShopBackend/dbconn"
 )
 
-func FetchProductList(page int, itensPerPage int) ([]Product, int) {
+func fetchProductList(page int, itensPerPage int) ([]product, int) {
 	db := dbconn.GetDB()
 
 	countQuery := "SELECT COUNT(id) FROM products"
@@ -17,7 +17,7 @@ func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 		log.Fatal("[DEBUG]: Error querying products count!")
 	}
 
-	var products []Product
+	var products []product
 
 	query := "SELECT id, name, description, price FROM products LIMIT $1 OFFSET $2"
 
@@ -31,7 +31,7 @@ func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var p Product
+		var p product
 		err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.Price)
 		if err != nil {
 			log.Fatal("[ERROR]: Error scanning product row!")
@@ -43,12 +43,12 @@ func FetchProductList(page int, itensPerPage int) ([]Product, int) {
 	return products, productsCount
 }
 
-func FetchProductByID(id string) (*Product, error) {
+func fetchProductByID(id string) (*product, error) {
 	db := dbconn.GetDB()
 
 	query := "SELECT id, name, description, price FROM products WHERE id = $1"
 
-	var p Product
+	var p product
 	err := db.QueryRow(query, id).Scan(&p.ID, &p.Name, &p.Description, &p.Price)
 	if err != nil {
 		log.Println("[ERROR]: Error querying product!")
@@ -58,7 +58,7 @@ func FetchProductByID(id string) (*Product, error) {
 	return &p, nil
 }
 
-func InsertProductIntoDatabase(p *Product) error {
+func insertProductIntoDatabase(p *product) error {
 	db := dbconn.GetDB()
 
 	query := "INSERT INTO products (name, description, price) VALUES ($1, $2, $3) RETURNING id"
@@ -79,7 +79,7 @@ func InsertProductIntoDatabase(p *Product) error {
 	return nil
 }
 
-func UpdateProductByID(p *Product) (int64, error) {
+func updateProductByID(p *product) (int64, error) {
 	db := dbconn.GetDB()
 
 	query := "UPDATE products SET name = $1, description = $2, price = $3 WHERE id = $4"
@@ -106,7 +106,7 @@ func UpdateProductByID(p *Product) (int64, error) {
 	return rowsAffected, nil
 }
 
-func DeleteProductByID(id string) (int64, error) {
+func deleteProductByID(id string) (int64, error) {
 	db := dbconn.GetDB()
 
 	query := "DELETE FROM products WHERE id = $1"

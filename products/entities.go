@@ -8,25 +8,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type Product struct {
+type product struct {
 	ID          uuid.UUID `json:"id"`
 	Name        string    `json:"name"`
 	Description string    `json:"description"`
 	Price       float64   `json:"price"`
 }
 
-func ParseProductFromRequest(r *http.Request, p *Product) error {
+func ParseProductFromRequest(r *http.Request, p *product) error {
 	var err error
 
 	if r.Method != http.MethodPost {
 		id := r.PathValue("id")
 		if id == "" {
-			return errors.New("Product ID is required")
+			return errors.New("product ID is required")
 		}
 
 		p.ID, err = uuid.Parse(id)
 		if err != nil {
-			return errors.New("Product ID is not a valid UUID")
+			return errors.New("product ID is not a valid UUID")
 		}
 	}
 
@@ -43,24 +43,24 @@ func ParseProductFromRequest(r *http.Request, p *Product) error {
 	return nil
 }
 
-func (p *Product) validate() error {
+func (p *product) validate() error {
 	if p.Name == "" {
-		return errors.New("Product name is required")
+		return errors.New("product name is required")
 	}
 
 	if p.Description == "" {
-		return errors.New("Product description is required")
+		return errors.New("product description is required")
 	}
 
 	if p.Price == 0 {
-		return errors.New("Product price is required")
+		return errors.New("product price is required")
 	}
 
 	return nil
 }
 
-type ProductsResponse struct {
-	Result       []Product `json:"result"`
+type productsResponse struct {
+	Result       []product `json:"result"`
 	TotalItems   int       `json:"totalItems"`
 	TotalPages   int       `json:"totalPages"`
 	ItemsPerPage int       `json:"itemsPerPage"`

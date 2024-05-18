@@ -12,7 +12,7 @@ import (
 func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
 
-	var newProduct Product
+	var newProduct product
 	err = ParseProductFromRequest(r, &newProduct)
 	if err != nil {
 		log.Printf("[ERROR] %s (%d): Error parsing product from request: %s", r.URL, http.StatusBadRequest, err.Error())
@@ -22,7 +22,7 @@ func CreateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = InsertProductIntoDatabase(&newProduct)
+	err = insertProductIntoDatabase(&newProduct)
 	if err != nil {
 		log.Printf("[ERROR] %s (%d): Error inserting product into database: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productsList, productsCount := FetchProductList(pageInt, itemsPerPageInt)
+	productsList, productsCount := fetchProductList(pageInt, itemsPerPageInt)
 
 	if pageInt < 1 || pageInt > productsCount/itemsPerPageInt+1 {
 		log.Printf("[ERROR] %s (%d): Error verifying page query: Invalid page number", r.URL, http.StatusBadRequest)
@@ -75,7 +75,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 
 	totalPages := utils.CalculateTotalPages(productsCount, itemsPerPageInt)
 
-	productsResponse := ProductsResponse{
+	productsResponse := productsResponse{
 		Result:       productsList,
 		TotalItems:   productsCount,
 		TotalPages:   totalPages,
@@ -100,7 +100,7 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
-	product, err := FetchProductByID(id)
+	product, err := fetchProductByID(id)
 	if err != nil {
 		log.Printf("[ERROR] %s (%d): Error fetching product by ID: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusNotFound)
@@ -123,7 +123,7 @@ func DeatilProductHandler(w http.ResponseWriter, r *http.Request) {
 
 func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 	var err error
-	var updatedProduct Product
+	var updatedProduct product
 
 	err = ParseProductFromRequest(r, &updatedProduct)
 
@@ -135,7 +135,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rowsAffected, err := UpdateProductByID(&updatedProduct)
+	rowsAffected, err := updateProductByID(&updatedProduct)
 	if err != nil {
 		log.Printf("[ERROR] %s (%d): Error updating product: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
@@ -168,7 +168,7 @@ func UpdateProductHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteProductHandler(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 
-	rowsAffected, err := DeleteProductByID(id)
+	rowsAffected, err := deleteProductByID(id)
 	if err != nil {
 		log.Printf("[ERROR] %s (%d): Error deleting product: %s", r.URL, http.StatusInternalServerError, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
