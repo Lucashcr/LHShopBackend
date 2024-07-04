@@ -6,18 +6,19 @@ import (
 	"github.com/Lucashcr/LHShopBackend/dbconn"
 )
 
-func fetchProductList(page int, itensPerPage int) ([]product, int) {
+func fetchProductList(page int, itensPerPage int) ([]product, int, error) {
 	db := dbconn.GetDB()
+
+	var products []product
+	var productsCount int
 
 	countQuery := "SELECT COUNT(id) FROM products"
 
-	var productsCount int
 	err := db.QueryRow(countQuery).Scan(&productsCount)
 	if err != nil {
-		log.Fatal("[DEBUG]: Error querying products count!")
+		log.Println("[DEBUG]: Error querying products count!")
+		return []product{}, 0, err
 	}
-
-	var products []product
 
 	query := "SELECT id, name, description, price FROM products LIMIT $1 OFFSET $2"
 
@@ -26,7 +27,8 @@ func fetchProductList(page int, itensPerPage int) ([]product, int) {
 
 	rows, err := db.Query(query, limit, offset)
 	if err != nil {
-		log.Fatal("[ERROR]: Error querying products!")
+		log.Println("[ERROR]: Error querying products!")
+		return []product{}, 0, err
 	}
 	defer rows.Close()
 
@@ -34,13 +36,14 @@ func fetchProductList(page int, itensPerPage int) ([]product, int) {
 		var p product
 		err := rows.Scan(&p.ID, &p.Name, &p.Description, &p.Price)
 		if err != nil {
-			log.Fatal("[ERROR]: Error scanning product row!")
+			log.Println("[ERROR]: Error scanning product row!")
+			return []product{}, productsCount, err
 		}
 
 		products = append(products, p)
 	}
 
-	return products, productsCount
+	return products, productsCount, nil
 }
 
 func fetchProductByID(id string) (*product, error) {

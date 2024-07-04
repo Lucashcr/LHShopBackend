@@ -62,7 +62,13 @@ func ListProductsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productsList, productsCount := fetchProductList(pageInt, itemsPerPageInt)
+	productsList, productsCount, err := fetchProductList(pageInt, itemsPerPageInt)
+	if err != nil {
+		log.Printf("[ERROR] %s (%d): Error fetching products list: ", r.URL, http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Error verifying itemsPerPage query: Invalid itemsPerPage number"))
+		return
+	}
 
 	if pageInt < 1 || pageInt > productsCount/itemsPerPageInt+1 {
 		log.Printf("[ERROR] %s (%d): Error verifying page query: Invalid page number", r.URL, http.StatusBadRequest)
